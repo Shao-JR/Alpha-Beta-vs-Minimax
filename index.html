@@ -4,8 +4,2020 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Alpha-Beta vs Minimax 对比可视化</title>
-    <script type="module" crossorigin>(function(){const t=document.createElement("link").relList;if(t&&t.supports&&t.supports("modulepreload"))return;for(const s of document.querySelectorAll('link[rel="modulepreload"]'))c(s);new MutationObserver(s=>{for(const i of s)if(i.type==="childList")for(const a of i.addedNodes)a.tagName==="LINK"&&a.rel==="modulepreload"&&c(a)}).observe(document,{childList:!0,subtree:!0});function r(s){const i={};return s.integrity&&(i.integrity=s.integrity),s.referrerPolicy&&(i.referrerPolicy=s.referrerPolicy),s.crossOrigin==="use-credentials"?i.credentials="include":s.crossOrigin==="anonymous"?i.credentials="omit":i.credentials="same-origin",i}function c(s){if(s.ep)return;s.ep=!0;const i=r(s);fetch(s.href,i)}})();const Z="http://www.w3.org/2000/svg",y=22,X=10,z=8,q=8,j=70,tt=95,et=50,nt=68,st=40,it=60;let m,rt=0,L=null,A=!1,k=null;const u={steps:[],currentStep:-1,states:new Map,svgId:"svg-ab",logId:"log-ab",statsId:"stats-ab"},o={steps:[],currentStep:-1,states:new Map,svgId:"svg-mm",logId:"log-mm",statsId:"stats-mm"};function x(e,t=null){return{id:`n${rt++}`,value:t,children:[],type:e}}function ct(){const e=x("max"),t=x("min"),r=x("min");return e.children=[t,r],t.children=[x("max",3),x("max",5)],r.children=[x("max",6),x("max",4)],e}function B(e,t){if(e.id===t)return e;for(const r of e.children){const c=B(r,t);if(c)return c}return null}function T(e,t){for(let r=0;r<e.children.length;r++){if(e.children[r].id===t)return{parent:e,index:r};const c=T(e.children[r],t);if(c)return c}return null}function $(e){return e.children.length===0}function at(e){const t=B(m,e);t&&($(t)&&t.value!==null&&(t.children.push(x(t.type==="max"?"min":"max",t.value)),t.value=null),t.children.push(x(t.type==="max"?"min":"max",0)),P())}function dt(e){const t=T(m,e);t&&(t.parent.children.splice(t.index+1,0,x(t.parent.children[t.index].type,0)),P())}function lt(e){if(m.id===e)return;const t=T(m,e);t&&(t.parent.children.splice(t.index,1),t.parent.children.length===0&&(t.parent.value=0),P())}function ut(e,t){const r=B(m,e);r&&(r.value=t,P())}function C(e){return e===-1/0?"-∞":e===1/0?"∞":String(e)}function ot(e){const t=[];function r(c,s,i,a){if(t.push({nodeId:c.id,action:"visit",alpha:s,beta:i,value:c.value,computedValue:null,message:`访问 ${a?"MAX":"MIN"} (α=${C(s)}, β=${C(i)})`}),c.children.length===0){const n=c.value??0;return t.push({nodeId:c.id,action:"evaluate",alpha:s,beta:i,value:n,computedValue:n,message:`叶子 = ${n}`}),n}if(a){let n=-1/0;for(let l=0;l<c.children.length;l++){if(i<=s&&l>0){for(let d=l;d<c.children.length;d++)t.push({nodeId:c.children[d].id,action:"prune",alpha:s,beta:i,value:null,computedValue:null,message:"剪枝 (β≤α)"});break}n=Math.max(n,r(c.children[l],s,i,!1)),s=Math.max(s,n),t.push({nodeId:c.id,action:"update",alpha:s,beta:i,value:n,computedValue:n,message:`MAX = ${n}, α=${C(s)}`})}return t.push({nodeId:c.id,action:"return",alpha:s,beta:i,value:n,computedValue:n,message:`MAX 返回 ${n}`}),n}else{let n=1/0;for(let l=0;l<c.children.length;l++){if(i<=s&&l>0){for(let d=l;d<c.children.length;d++)t.push({nodeId:c.children[d].id,action:"prune",alpha:s,beta:i,value:null,computedValue:null,message:"剪枝 (β≤α)"});break}n=Math.min(n,r(c.children[l],s,i,!0)),i=Math.min(i,n),t.push({nodeId:c.id,action:"update",alpha:s,beta:i,value:n,computedValue:n,message:`MIN = ${n}, β=${C(i)}`})}return t.push({nodeId:c.id,action:"return",alpha:s,beta:i,value:n,computedValue:n,message:`MIN 返回 ${n}`}),n}}return r(e,-1/0,1/0,!0),t}function pt(e){const t=[];function r(c,s){if(t.push({nodeId:c.id,action:"visit",alpha:-1/0,beta:1/0,value:c.value,computedValue:null,message:`访问 ${s?"MAX":"MIN"}`}),c.children.length===0){const n=c.value??0;return t.push({nodeId:c.id,action:"evaluate",alpha:-1/0,beta:1/0,value:n,computedValue:n,message:`叶子 = ${n}`}),n}const i=[];for(const n of c.children)i.push(r(n,!s));const a=s?Math.max(...i):Math.min(...i);return t.push({nodeId:c.id,action:"update",alpha:-1/0,beta:1/0,value:a,computedValue:a,message:`${s?"MAX":"MIN"} = ${a}`}),t.push({nodeId:c.id,action:"return",alpha:-1/0,beta:1/0,value:a,computedValue:a,message:`返回 ${a}`}),a}return r(e,!0),t}function I(e,t){const r=new Map;function c(i){r.set(i.id,{alpha:-1/0,beta:1/0,pruned:!1,evaluated:!1,computedValue:null,active:!1}),i.children.forEach(c)}c(m);const s=new Set;for(let i=0;i<=t&&i<e.steps.length;i++){const a=e.steps[i],n=r.get(a.nodeId);if(n)switch(a.action){case"visit":n.active=!0,n.alpha=a.alpha,n.beta=a.beta;break;case"evaluate":n.evaluated=!0,n.computedValue=a.computedValue,n.alpha=a.alpha,n.beta=a.beta;break;case"update":n.evaluated=!0,n.computedValue=a.computedValue,n.alpha=a.alpha,n.beta=a.beta,n.active=!0;break;case"prune":s.add(a.nodeId);break;case"return":n.evaluated=!0,n.computedValue=a.computedValue,n.alpha=a.alpha,n.beta=a.beta;break}}for(const i of s){const a=B(m,i);if(a){let n=function(l){const d=r.get(l.id);d&&(d.pruned=!0),l.children.forEach(n)};n(a)}}if(t>=0&&t<e.steps.length){for(const a of r.values())a.active=!1;const i=r.get(e.steps[t].nodeId);i&&(i.active=!0)}e.states=r}function ft(e){const t=new Map;function r(s){if(s.children.length===0)return j;const i=s.children.reduce((a,n)=>a+r(n),0)+(s.children.length-1)*8;return Math.max(j,i)}function c(s,i,a){const n=r(s);if(t.set(s.id,{x:i+n/2,y:a+et}),s.children.length>0){const l=s.children.reduce((f,g)=>f+r(g),0)+(s.children.length-1)*8;let d=i+(n-l)/2;for(const f of s.children)c(f,d,a+tt),d+=r(f)+8}}return c(e,nt,0),t}function mt(e){let t=0,r=0;for(const c of e.values())t=Math.max(t,c.x+y+st),r=Math.max(r,c.y+y+it);return{w:t,h:r}}function p(e){return document.createElementNS(Z,e)}function M(e){const t=document.getElementById(e.svgId);if(!t)return;t.innerHTML="";const r=ft(m),c=mt(r);t.setAttribute("width",String(c.w)),t.setAttribute("height",String(c.h)),t.setAttribute("viewBox",`0 0 ${c.w} ${c.h}`);const s=p("defs"),i=p("filter");i.id=`glow-${e.svgId}`,i.setAttribute("x","-50%"),i.setAttribute("y","-50%"),i.setAttribute("width","200%"),i.setAttribute("height","200%");const a=p("feGaussianBlur");a.setAttribute("stdDeviation","3"),a.setAttribute("result","blur");const n=p("feMerge"),l=p("feMergeNode");l.setAttribute("in","blur");const d=p("feMergeNode");d.setAttribute("in","SourceGraphic"),n.appendChild(l),n.appendChild(d),i.appendChild(a),i.appendChild(n),s.appendChild(i),t.appendChild(s),gt(t,r),W(t,m,r,e.states),J(t,m,r,e)}function gt(e,t){const r=[];function c(s,i){const a=t.get(s.id);a&&!r[i]&&(r[i]={y:a.y,type:s.type}),s.children.forEach(n=>c(n,i+1))}c(m,0);for(const s of r){const i=s.type==="max"?"#1e3a5f":"#422006",a=s.type==="max"?"#3b82f6":"#f59e0b",n=p("rect");n.setAttribute("x","6"),n.setAttribute("y",String(s.y-10)),n.setAttribute("width","42"),n.setAttribute("height","20"),n.setAttribute("rx","3"),n.setAttribute("fill",i),n.setAttribute("stroke",a),n.setAttribute("stroke-width","1"),e.appendChild(n);const l=p("text");l.setAttribute("x","27"),l.setAttribute("y",String(s.y+4)),l.setAttribute("text-anchor","middle"),l.setAttribute("fill",a),l.setAttribute("font-size","9"),l.setAttribute("font-weight","700"),l.textContent=s.type.toUpperCase(),e.appendChild(l)}}function W(e,t,r,c){const s=r.get(t.id);if(s)for(const i of t.children){const a=r.get(i.id);if(!a)continue;const n=p("line");n.setAttribute("x1",String(s.x)),n.setAttribute("y1",String(s.y+y)),n.setAttribute("x2",String(a.x)),n.setAttribute("y2",String(a.y-y)),n.classList.add("tree-edge");const l=c.get(i.id);l?.pruned&&n.classList.add("pruned"),l?.active&&n.classList.add("active"),e.appendChild(n),W(e,i,r,c)}}function J(e,t,r,c){const s=r.get(t.id);if(!s)return;const i=c.states.get(t.id),a=p("g");a.classList.add("node-group"),a.setAttribute("data-id",t.id);const n=p("circle");if(n.setAttribute("r",String(y)),n.classList.add("node-circle",t.type==="max"?"type-max":"type-min"),i?.active&&(n.classList.add("active"),n.setAttribute("filter",`url(#glow-${c.svgId})`)),i?.pruned&&n.classList.add("pruned"),i?.evaluated&&n.classList.add("evaluated"),a.appendChild(n),!$(t)){const d=p("text");d.setAttribute("y","-5"),d.classList.add("node-type-text"),d.textContent=t.type==="max"?"MAX":"MIN",a.appendChild(d)}const l=p("text");if(l.setAttribute("y",$(t)?"1":"9"),l.classList.add("node-value-text"),$(t)?(l.classList.add("leaf"),l.textContent=String(t.value??0),l.addEventListener("dblclick",d=>{d.stopPropagation(),ht(t.id,s,c.svgId)})):i?.computedValue!=null&&(l.textContent=String(i.computedValue)),a.appendChild(l),(i?.evaluated||i?.active)&&c.svgId==="svg-ab"){const d=p("text");d.setAttribute("x",String(-28)),d.setAttribute("y","-3"),d.classList.add("alpha-text","visible"),d.textContent=`α=${C(i?.alpha??-1/0)}`,a.appendChild(d);const f=p("text");f.setAttribute("x",String(y+6)),f.setAttribute("y","-3"),f.classList.add("beta-text","visible"),f.textContent=`β=${C(i?.beta??1/0)}`,a.appendChild(f)}if(!$(t)&&i?.computedValue!=null){const d=p("text");d.setAttribute("y",String(y+14)),d.classList.add("computed-value-text"),d.textContent=`=${i.computedValue}`,a.appendChild(d)}if(i?.pruned){const d=p("line");d.setAttribute("x1",String(-y)),d.setAttribute("y1","0"),d.setAttribute("x2",String(y)),d.setAttribute("y2","0"),d.classList.add("prune-strike"),a.appendChild(d)}if(c.svgId==="svg-ab"&&!i?.pruned){const d=p("g");d.classList.add("add-child-btn"),d.setAttribute("transform",`translate(0, ${y+X+3})`);const f=p("circle");f.setAttribute("r",String(X)),f.classList.add("btn-circle"),d.appendChild(f);const g=p("text");g.setAttribute("y","1"),g.classList.add("btn-text"),g.textContent="+",d.appendChild(g),d.addEventListener("click",v=>{v.stopPropagation(),at(t.id)}),a.appendChild(d)}if(c.svgId==="svg-ab"&&t.id!==m.id&&!i?.pruned){const d=p("g");d.classList.add("action-btn","remove-btn"),d.setAttribute("transform",`translate(${y-2}, -20)`);const f=p("circle");f.setAttribute("r",String(z)),f.classList.add("btn-circle"),d.appendChild(f);const g=p("text");g.setAttribute("y","1"),g.classList.add("btn-text"),g.textContent="×",d.appendChild(g),d.addEventListener("click",b=>{b.stopPropagation(),lt(t.id)}),a.appendChild(d);const v=p("g");v.classList.add("action-btn"),v.setAttribute("transform",`translate(${y+q+4}, 0)`);const E=p("circle");E.setAttribute("r",String(q)),E.classList.add("btn-circle"),v.appendChild(E);const S=p("text");S.setAttribute("y","1"),S.classList.add("btn-text"),S.style.fontSize="11px",S.textContent="+",v.appendChild(S),v.addEventListener("click",b=>{b.stopPropagation(),dt(t.id)}),a.appendChild(v)}a.setAttribute("transform",`translate(${s.x}, ${s.y})`),e.appendChild(a);for(const d of t.children)J(e,d,r,c)}function w(e){const t=document.getElementById(e.logId);if(t){if(t.innerHTML="",e.steps.length===0){t.innerHTML='<div style="padding:10px 12px;color:var(--text-muted);font-size:11px;">点击「运行对比」开始</div>';return}for(let r=0;r<e.steps.length;r++){const c=e.steps[r],s=document.createElement("div");s.classList.add("step-item",`action-${c.action}`),r<e.currentStep?s.classList.add("past"):r===e.currentStep&&s.classList.add("active");const i={visit:"访问",evaluate:"评估",update:"更新",prune:"剪枝",return:"返回"};s.innerHTML=`<span class="step-num">${r+1}.</span><span class="step-action">${i[c.action]}</span> ${c.message}`,s.addEventListener("click",()=>H(r)),t.appendChild(s)}if(e.currentStep>=0){const r=t.children[e.currentStep];r&&r.scrollIntoView({block:"nearest",behavior:"smooth"})}}}function K(e){const t=new Set;let r=0;for(let c=0;c<=e.currentStep&&c<e.steps.length;c++){const s=e.steps[c];(s.action==="visit"||s.action==="evaluate")&&t.add(s.nodeId),s.action==="prune"&&(r++,B(m,s.nodeId))}return{steps:e.currentStep+1,visited:t.size,pruned:r}}function N(){const e=K(u),t=K(o),r=document.getElementById(u.statsId);r&&(r.textContent=`${e.steps} 步 · ${e.visited} 节点访问 · ${e.pruned} 剪枝`);const c=document.getElementById(o.statsId);c&&(c.textContent=`${t.steps} 步 · ${t.visited} 节点访问`);const s=u.steps.length,i=o.steps.length,a=new Set(u.steps.filter(h=>h.action==="visit"||h.action==="evaluate").map(h=>h.nodeId)).size,n=new Set(o.steps.filter(h=>h.action==="visit"||h.action==="evaluate").map(h=>h.nodeId)).size,l=u.steps.filter(h=>h.action==="prune").length,d=document.getElementById("cmp-steps-ab"),f=document.getElementById("cmp-steps-mm"),g=document.getElementById("cmp-visited-ab"),v=document.getElementById("cmp-visited-mm"),E=document.getElementById("cmp-pruned-ab"),S=document.getElementById("cmp-pruned-mm"),b=document.getElementById("cmp-efficiency"),F=document.getElementById("step-counter");if(d&&(d.textContent=String(s)),f&&(f.textContent=String(i)),g&&(g.textContent=String(a)),v&&(v.textContent=String(n)),E&&(E.textContent=String(l)),S&&(S.textContent="0"),b)if(i>0&&s<i){const h=((1-s/i)*100).toFixed(1);b.textContent=`${h}%`,b.style.color="var(--ab-color)"}else s===i&&i>0?(b.textContent="0%",b.style.color="var(--text-muted)"):b.textContent="—";if(F){const h=Math.max(u.currentStep,o.currentStep)+1,G=Math.max(s,i);F.textContent=`步骤: ${G>0?h:0}/${G}`}}function Q(){u.steps=ot(m),o.steps=pt(m),u.currentStep=-1,o.currentStep=-1,I(u,-1),I(o,-1),N()}function H(e){const t=Math.min(e,u.steps.length-1),r=Math.min(e,o.steps.length-1);u.currentStep=t,o.currentStep=r,I(u,t),I(o,r),M(u),M(o),w(u),w(o),N()}function U(){u.steps.length===0&&Q();const e=Math.max(u.steps.length,o.steps.length),t=Math.max(u.currentStep,o.currentStep);t<e-1&&H(t+1)}function D(){u.steps.length===0&&Q();const e=Math.max(u.steps.length,o.steps.length);Math.max(u.currentStep,o.currentStep)>=e-1&&(u.currentStep=-1,o.currentStep=-1,I(u,-1),I(o,-1)),Y()}function Y(){if(A)return;A=!0;const e=document.getElementById("speed-slider"),t=e?parseInt(e.value,10):500;k=setInterval(()=>{const r=Math.max(u.steps.length,o.steps.length),c=Math.max(u.currentStep,o.currentStep);c<r-1?H(c+1):V()},t),O()}function V(){A=!1,k&&(clearInterval(k),k=null),O()}function _(){V(),u.steps=[],o.steps=[],u.currentStep=-1,o.currentStep=-1,I(u,-1),I(o,-1),M(u),M(o),w(u),w(o),N()}function P(){_()}function O(){const e=document.getElementById("btn-run"),t=document.getElementById("btn-step");e&&(e.disabled=A,e.innerHTML=A?'<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><rect x="3" y="2" width="4" height="12"/><rect x="9" y="2" width="4" height="12"/></svg> 暂停':'<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M4 2l10 6-10 6V2z"/></svg> 运行对比'),t&&(t.disabled=A)}function ht(e,t,r){if(L)return;L=e;const c=document.getElementById("value-editor"),s=document.getElementById("value-input");if(!c||!s)return;const i=B(m,e);if(!i)return;const a=document.getElementById(r);if(!a)return;const n=a.getBoundingClientRect(),l=parseFloat(a.getAttribute("width")||"1"),d=parseFloat(a.getAttribute("height")||"1"),f=n.width/l,g=n.height/d;c.style.left=`${n.left+t.x*f-28}px`,c.style.top=`${n.top+t.y*g-15}px`,c.classList.remove("hidden"),s.value=String(i.value??0),s.focus(),s.select()}function R(){if(!L)return;const e=document.getElementById("value-input"),t=document.getElementById("value-editor");if(!e||!t)return;const r=parseInt(e.value,10);isNaN(r)||ut(L,r),L=null,t.classList.add("hidden")}function yt(){m=ct(),I(u,-1),I(o,-1),document.getElementById("btn-run")?.addEventListener("click",()=>{A?V():D()}),document.getElementById("btn-step")?.addEventListener("click",()=>U()),document.getElementById("btn-reset")?.addEventListener("click",()=>_()),document.getElementById("speed-slider")?.addEventListener("input",()=>{A&&(V(),Y())}),document.querySelectorAll(".drawer-toggle").forEach(t=>{t.addEventListener("click",()=>{const r=t.getAttribute("data-target");r&&document.getElementById(r)?.classList.toggle("collapsed")})}),document.querySelectorAll(".drawer-header").forEach(t=>{t.addEventListener("click",()=>{t.closest(".step-drawer")?.classList.toggle("collapsed")})});const e=document.getElementById("value-input");e&&(e.addEventListener("keydown",t=>{t.key==="Enter"?R():t.key==="Escape"&&(L=null,document.getElementById("value-editor")?.classList.add("hidden"))}),e.addEventListener("blur",()=>R())),document.addEventListener("click",t=>{const r=document.getElementById("value-editor");r&&!r.classList.contains("hidden")&&!r.contains(t.target)&&R()}),document.addEventListener("keydown",t=>{L||(t.key==="ArrowRight"||t.key==="n"?U():t.key==="r"?D():t.key==="Escape"?_():t.key===" "&&(t.preventDefault(),A?V():D()))}),M(u),M(o),w(u),w(o),N(),O()}yt();</script>
-    <style rel="stylesheet" crossorigin>*,:before,:after{--tw-border-spacing-x: 0;--tw-border-spacing-y: 0;--tw-translate-x: 0;--tw-translate-y: 0;--tw-rotate: 0;--tw-skew-x: 0;--tw-skew-y: 0;--tw-scale-x: 1;--tw-scale-y: 1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness: proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width: 0px;--tw-ring-offset-color: #fff;--tw-ring-color: rgb(59 130 246 / .5);--tw-ring-offset-shadow: 0 0 #0000;--tw-ring-shadow: 0 0 #0000;--tw-shadow: 0 0 #0000;--tw-shadow-colored: 0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x: 0;--tw-border-spacing-y: 0;--tw-translate-x: 0;--tw-translate-y: 0;--tw-rotate: 0;--tw-skew-x: 0;--tw-skew-y: 0;--tw-scale-x: 1;--tw-scale-y: 1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness: proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width: 0px;--tw-ring-offset-color: #fff;--tw-ring-color: rgb(59 130 246 / .5);--tw-ring-offset-shadow: 0 0 #0000;--tw-ring-shadow: 0 0 #0000;--tw-shadow: 0 0 #0000;--tw-shadow-colored: 0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }*,:before,:after{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}:before,:after{--tw-content: ""}html,:host{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;-o-tab-size:4;tab-size:4;font-family:ui-sans-serif,system-ui,sans-serif,"Apple Color Emoji","Segoe UI Emoji",Segoe UI Symbol,"Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,samp,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dl,dd,h1,h2,h3,h4,h5,h6,hr,figure,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}ol,ul,menu{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::-moz-placeholder,textarea::-moz-placeholder{opacity:1;color:#9ca3af}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}button,[role=button]{cursor:pointer}:disabled{cursor:default}img,svg,video,canvas,audio,iframe,embed,object{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.visible{visibility:visible}.block{display:block}.hidden{display:none}.transform{transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skew(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.blur{--tw-blur: blur(8px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.filter{filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}:root{--bg-deep: #0f172a;--bg-panel: #1e293b;--bg-panel-hover: #334155;--border-color: #334155;--text-primary: #f8fafc;--text-secondary: #94a3b8;--text-muted: #64748b;--node-max: #3b82f6;--node-max-bg: #1e3a5f;--node-min: #f59e0b;--node-min-bg: #422006;--node-active: #22c55e;--node-active-bg: #14532d;--node-pruned: #64748b;--node-pruned-bg: #1e293b;--edge-color: #475569;--accent: #10b981;--accent-hover: #059669;--danger: #ef4444;--ab-color: #10b981;--mm-color: #f59e0b}*{margin:0;padding:0;box-sizing:border-box}body{background:var(--bg-deep);color:var(--text-primary);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;overflow:hidden;height:100vh}#app{display:flex;flex-direction:column;height:100vh}#toolbar{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:50px;background:var(--bg-panel);border-bottom:1px solid var(--border-color);flex-shrink:0}.toolbar-left .title{font-size:16px;font-weight:700;letter-spacing:.5px;color:var(--text-primary)}.toolbar-center{display:flex;align-items:center;gap:6px}.toolbar-center button{display:flex;align-items:center;gap:5px;padding:5px 12px;border:1px solid var(--border-color);border-radius:6px;background:var(--bg-deep);color:var(--text-primary);font-size:12px;cursor:pointer;transition:all .15s ease}.toolbar-center button:hover{background:var(--bg-panel-hover);border-color:var(--accent)}.toolbar-center button:active{transform:scale(.97)}.toolbar-center button:disabled{opacity:.4;cursor:not-allowed}.speed-control{display:flex;align-items:center;gap:6px;margin-left:6px;padding-left:12px;border-left:1px solid var(--border-color)}.speed-label{font-size:11px;color:var(--text-secondary)}#speed-slider{width:80px;accent-color:var(--accent)}.step-counter{font-size:12px;font-family:SF Mono,Cascadia Code,Fira Code,monospace;color:var(--text-secondary);background:var(--bg-deep);padding:3px 8px;border-radius:4px;border:1px solid var(--border-color)}#workspace{display:flex;flex:1;overflow:hidden;gap:1px;background:var(--border-color)}.algo-panel{flex:1;display:flex;flex-direction:column;background:var(--bg-deep);min-width:0}.panel-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg-panel);border-bottom:1px solid var(--border-color);flex-shrink:0}.panel-badge{font-size:12px;font-weight:700;padding:2px 10px;border-radius:4px;letter-spacing:.5px}.ab-badge{background:#10b98126;color:var(--ab-color);border:1px solid rgba(16,185,129,.3)}.mm-badge{background:#f59e0b26;color:var(--mm-color);border:1px solid rgba(245,158,11,.3)}.panel-stats{font-size:11px;color:var(--text-muted);font-family:SF Mono,Cascadia Code,Fira Code,monospace}.tree-viewport{flex:1;overflow:auto;position:relative;background:radial-gradient(circle at 50% 0%,rgba(59,130,246,.04) 0%,transparent 60%),var(--bg-deep)}.tree-viewport svg{display:block;min-width:100%;min-height:100%}.step-drawer{flex-shrink:0;background:var(--bg-panel);border-top:1px solid var(--border-color);max-height:180px;display:flex;flex-direction:column}.drawer-header{display:flex;align-items:center;justify-content:space-between;padding:6px 12px;font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;cursor:pointer;-webkit-user-select:none;-moz-user-select:none;user-select:none}.drawer-toggle{background:none;border:none;color:var(--text-muted);font-size:14px;cursor:pointer;padding:0 4px;transition:transform .2s ease}.step-drawer.collapsed .drawer-toggle{transform:rotate(-90deg)}.step-drawer.collapsed .drawer-body{display:none}.drawer-body{flex:1;overflow-y:auto;padding:4px 0}.step-item{padding:4px 12px;font-size:11px;line-height:1.4;border-left:3px solid transparent;color:var(--text-secondary);transition:all .12s ease;cursor:pointer}.step-item:hover{background:#ffffff08}.step-item.active{background:#10b98114;border-left-color:var(--accent);color:var(--text-primary)}.step-item.past{color:var(--text-muted)}.step-num{font-family:SF Mono,Cascadia Code,Fira Code,monospace;font-weight:600;color:var(--accent);margin-right:4px}.step-action{font-weight:600}.action-visit .step-action{color:#60a5fa}.action-evaluate .step-action{color:#34d399}.action-update .step-action{color:#fbbf24}.action-prune .step-action{color:#f87171}.action-return .step-action{color:#a78bfa}#compare-bar{display:flex;align-items:center;justify-content:center;gap:24px;padding:8px 20px;background:var(--bg-panel);border-top:1px solid var(--border-color);flex-shrink:0}.compare-item{display:flex;flex-direction:column;align-items:center;gap:2px}.compare-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}.compare-values{display:flex;align-items:center;gap:6px;font-family:SF Mono,Cascadia Code,Fira Code,monospace;font-size:16px;font-weight:700}.ab-val{color:var(--ab-color)}.mm-val{color:var(--mm-color)}.vs{color:var(--text-muted);font-size:11px;font-weight:400}.compare-item.highlight .efficiency-val{font-size:18px;color:var(--ab-color)}.compare-hint{font-size:11px;color:var(--text-muted);max-width:260px;text-align:center;line-height:1.4}#value-editor{position:fixed;z-index:100;display:flex;align-items:center;justify-content:center}#value-editor.hidden{display:none}#value-input{width:56px;height:30px;border:2px solid var(--accent);border-radius:6px;background:var(--bg-panel);color:var(--text-primary);text-align:center;font-size:13px;font-family:SF Mono,Cascadia Code,Fira Code,monospace;outline:none}#value-input:focus{box-shadow:0 0 0 3px #10b9814d}.node-circle{transition:all .2s ease;cursor:default}.node-circle.type-max{fill:var(--node-max-bg);stroke:var(--node-max);stroke-width:2}.node-circle.type-min{fill:var(--node-min-bg);stroke:var(--node-min);stroke-width:2}.node-circle.active{fill:var(--node-active-bg)!important;stroke:var(--node-active)!important;stroke-width:2.5!important;filter:drop-shadow(0 0 6px rgba(34,197,94,.5))}.node-circle.pruned{fill:var(--node-pruned-bg)!important;stroke:var(--node-pruned)!important;stroke-width:1.5!important;stroke-dasharray:5 3;opacity:.5}.node-circle.evaluated{stroke-width:2.5!important}.node-type-text{font-size:9px;font-weight:700;fill:var(--text-secondary);text-anchor:middle;pointer-events:none;-webkit-user-select:none;-moz-user-select:none;user-select:none}.node-value-text{font-size:13px;font-weight:700;fill:var(--text-primary);text-anchor:middle;pointer-events:none;-webkit-user-select:none;-moz-user-select:none;user-select:none;font-family:SF Mono,Cascadia Code,Fira Code,monospace}.node-value-text.leaf{cursor:pointer;pointer-events:all}.node-value-text.leaf:hover{fill:var(--accent)}.alpha-text,.beta-text{font-size:9px;font-family:SF Mono,Cascadia Code,Fira Code,monospace;pointer-events:none;-webkit-user-select:none;-moz-user-select:none;user-select:none;opacity:0;transition:opacity .2s ease}.alpha-text.visible,.beta-text.visible{opacity:1}.alpha-text{fill:#60a5fa;text-anchor:end}.beta-text{fill:#fbbf24;text-anchor:start}.computed-value-text{font-size:10px;font-weight:700;fill:var(--accent);text-anchor:middle;pointer-events:none;-webkit-user-select:none;-moz-user-select:none;user-select:none;font-family:SF Mono,Cascadia Code,Fira Code,monospace}.tree-edge{stroke:var(--edge-color);stroke-width:1.5;fill:none;transition:all .2s ease}.tree-edge.pruned{stroke:var(--node-pruned);stroke-dasharray:5 3;opacity:.35}.tree-edge.active{stroke:var(--node-active);stroke-width:2}.action-btn{cursor:pointer;opacity:0;transition:opacity .15s ease}.node-group:hover .action-btn{opacity:1}.action-btn .btn-circle{fill:var(--bg-deep);stroke:var(--accent);stroke-width:1.5;transition:all .15s ease}.action-btn:hover .btn-circle{fill:var(--accent)}.action-btn .btn-text{fill:var(--accent);font-size:12px;font-weight:700;text-anchor:middle;dominant-baseline:central;pointer-events:none;transition:fill .15s ease}.action-btn:hover .btn-text{fill:var(--bg-deep)}.action-btn.remove-btn .btn-circle{stroke:var(--danger)}.action-btn.remove-btn:hover .btn-circle,.action-btn.remove-btn .btn-text{fill:var(--danger)}.action-btn.remove-btn:hover .btn-text{fill:#fff}.add-child-btn{cursor:pointer;opacity:.5;transition:opacity .15s ease}.node-group:hover .add-child-btn{opacity:1}.add-child-btn .btn-circle{fill:var(--bg-deep);stroke:var(--accent);stroke-width:1.5;transition:fill .15s ease}.add-child-btn:hover .btn-circle{fill:var(--accent)}.add-child-btn .btn-text{fill:var(--accent);font-size:14px;font-weight:700;text-anchor:middle;dominant-baseline:central;pointer-events:none;transition:fill .15s ease}.add-child-btn:hover .btn-text{fill:var(--bg-deep)}.level-badge-rect{rx:3}.level-badge-text{text-anchor:middle;font-size:9px;font-weight:700;font-family:-apple-system,BlinkMacSystemFont,sans-serif}.prune-strike{stroke:var(--danger);stroke-width:2;opacity:.6}.tree-viewport::-webkit-scrollbar,.drawer-body::-webkit-scrollbar{width:5px;height:5px}.tree-viewport::-webkit-scrollbar-track,.drawer-body::-webkit-scrollbar-track{background:var(--bg-deep)}.tree-viewport::-webkit-scrollbar-thumb,.drawer-body::-webkit-scrollbar-thumb{background:var(--border-color);border-radius:3px}.tree-viewport::-webkit-scrollbar-thumb:hover,.drawer-body::-webkit-scrollbar-thumb:hover{background:var(--text-muted)}</style>
+    <script type="module" crossorigin>true              &&(function polyfill() {
+	const relList = document.createElement("link").relList;
+	if (relList && relList.supports && relList.supports("modulepreload")) return;
+	for (const link of document.querySelectorAll("link[rel=\"modulepreload\"]")) processPreload(link);
+	new MutationObserver((mutations) => {
+		for (const mutation of mutations) {
+			if (mutation.type !== "childList") continue;
+			for (const node of mutation.addedNodes) if (node.tagName === "LINK" && node.rel === "modulepreload") processPreload(node);
+		}
+	}).observe(document, {
+		childList: true,
+		subtree: true
+	});
+	function getFetchOpts(link) {
+		const fetchOpts = {};
+		if (link.integrity) fetchOpts.integrity = link.integrity;
+		if (link.referrerPolicy) fetchOpts.referrerPolicy = link.referrerPolicy;
+		if (link.crossOrigin === "use-credentials") fetchOpts.credentials = "include";
+		else if (link.crossOrigin === "anonymous") fetchOpts.credentials = "omit";
+		else fetchOpts.credentials = "same-origin";
+		return fetchOpts;
+	}
+	function processPreload(link) {
+		if (link.ep) return;
+		link.ep = true;
+		const fetchOpts = getFetchOpts(link);
+		fetch(link.href, fetchOpts);
+	}
+}());
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+const R = 22;
+const ADD_R = 10;
+const DEL_R = 8;
+const SIB_R = 8;
+const H_GAP = 70;
+const V_GAP = 95;
+const PAD_TOP = 50;
+const PAD_LEFT = 68;
+const PAD_RIGHT = 40;
+const PAD_BOT = 60;
+let tree;
+let nodeIdCounter = 0;
+let editingNodeId = null;
+let isPlaying = false;
+let playTimer = null;
+const vizAB = {
+  steps: [],
+  currentStep: -1,
+  states: /* @__PURE__ */ new Map(),
+  svgId: "svg-ab",
+  logId: "log-ab",
+  statsId: "stats-ab"
+};
+const vizMM = {
+  steps: [],
+  currentStep: -1,
+  states: /* @__PURE__ */ new Map(),
+  svgId: "svg-mm",
+  logId: "log-mm",
+  statsId: "stats-mm"
+};
+function createNode(type, value = null) {
+  return { id: `n${nodeIdCounter++}`, value, children: [], type };
+}
+function createDefaultTree() {
+  const root = createNode("max");
+  const m1 = createNode("min");
+  const m2 = createNode("min");
+  root.children = [m1, m2];
+  m1.children = [createNode("max", 3), createNode("max", 5)];
+  m2.children = [createNode("max", 6), createNode("max", 4)];
+  return root;
+}
+function findNode(root, id) {
+  if (root.id === id) return root;
+  for (const c of root.children) {
+    const f = findNode(c, id);
+    if (f) return f;
+  }
+  return null;
+}
+function findParent(root, id) {
+  for (let i = 0; i < root.children.length; i++) {
+    if (root.children[i].id === id) return { parent: root, index: i };
+    const f = findParent(root.children[i], id);
+    if (f) return f;
+  }
+  return null;
+}
+function isLeaf(n) {
+  return n.children.length === 0;
+}
+function addChild(parentId) {
+  const parent = findNode(tree, parentId);
+  if (!parent) return;
+  if (isLeaf(parent) && parent.value !== null) {
+    parent.children.push(createNode(parent.type === "max" ? "min" : "max", parent.value));
+    parent.value = null;
+  }
+  parent.children.push(createNode(parent.type === "max" ? "min" : "max", 0));
+  resetAndRender();
+}
+function addSibling(nodeId) {
+  const r = findParent(tree, nodeId);
+  if (!r) return;
+  r.parent.children.splice(r.index + 1, 0, createNode(r.parent.children[r.index].type, 0));
+  resetAndRender();
+}
+function removeNode(nodeId) {
+  if (tree.id === nodeId) return;
+  const r = findParent(tree, nodeId);
+  if (!r) return;
+  r.parent.children.splice(r.index, 1);
+  if (r.parent.children.length === 0) r.parent.value = 0;
+  resetAndRender();
+}
+function updateNodeValue(nodeId, val) {
+  const n = findNode(tree, nodeId);
+  if (n) {
+    n.value = val;
+    resetAndRender();
+  }
+}
+function fmt(n) {
+  if (n === -Infinity) return "-∞";
+  if (n === Infinity) return "∞";
+  return String(n);
+}
+function computeAlphaBeta(root) {
+  const steps = [];
+  function ab(node, alpha, beta, isMax) {
+    steps.push({
+      nodeId: node.id,
+      action: "visit",
+      alpha,
+      beta,
+      value: node.value,
+      computedValue: null,
+      message: `访问 ${isMax ? "MAX" : "MIN"} (α=${fmt(alpha)}, β=${fmt(beta)})`
+    });
+    if (node.children.length === 0) {
+      const v = node.value ?? 0;
+      steps.push({
+        nodeId: node.id,
+        action: "evaluate",
+        alpha,
+        beta,
+        value: v,
+        computedValue: v,
+        message: `叶子 = ${v}`
+      });
+      return v;
+    }
+    if (isMax) {
+      let best = -Infinity;
+      for (let i = 0; i < node.children.length; i++) {
+        if (beta <= alpha && i > 0) {
+          for (let j = i; j < node.children.length; j++) {
+            steps.push({
+              nodeId: node.children[j].id,
+              action: "prune",
+              alpha,
+              beta,
+              value: null,
+              computedValue: null,
+              message: `剪枝 (β≤α)`
+            });
+          }
+          break;
+        }
+        best = Math.max(best, ab(node.children[i], alpha, beta, false));
+        alpha = Math.max(alpha, best);
+        steps.push({
+          nodeId: node.id,
+          action: "update",
+          alpha,
+          beta,
+          value: best,
+          computedValue: best,
+          message: `MAX = ${best}, α=${fmt(alpha)}`
+        });
+      }
+      steps.push({
+        nodeId: node.id,
+        action: "return",
+        alpha,
+        beta,
+        value: best,
+        computedValue: best,
+        message: `MAX 返回 ${best}`
+      });
+      return best;
+    } else {
+      let best = Infinity;
+      for (let i = 0; i < node.children.length; i++) {
+        if (beta <= alpha && i > 0) {
+          for (let j = i; j < node.children.length; j++) {
+            steps.push({
+              nodeId: node.children[j].id,
+              action: "prune",
+              alpha,
+              beta,
+              value: null,
+              computedValue: null,
+              message: `剪枝 (β≤α)`
+            });
+          }
+          break;
+        }
+        best = Math.min(best, ab(node.children[i], alpha, beta, true));
+        beta = Math.min(beta, best);
+        steps.push({
+          nodeId: node.id,
+          action: "update",
+          alpha,
+          beta,
+          value: best,
+          computedValue: best,
+          message: `MIN = ${best}, β=${fmt(beta)}`
+        });
+      }
+      steps.push({
+        nodeId: node.id,
+        action: "return",
+        alpha,
+        beta,
+        value: best,
+        computedValue: best,
+        message: `MIN 返回 ${best}`
+      });
+      return best;
+    }
+  }
+  ab(root, -Infinity, Infinity, true);
+  return steps;
+}
+function computeMinimax(root) {
+  const steps = [];
+  function mm(node, isMax) {
+    steps.push({
+      nodeId: node.id,
+      action: "visit",
+      alpha: -Infinity,
+      beta: Infinity,
+      value: node.value,
+      computedValue: null,
+      message: `访问 ${isMax ? "MAX" : "MIN"}`
+    });
+    if (node.children.length === 0) {
+      const v = node.value ?? 0;
+      steps.push({
+        nodeId: node.id,
+        action: "evaluate",
+        alpha: -Infinity,
+        beta: Infinity,
+        value: v,
+        computedValue: v,
+        message: `叶子 = ${v}`
+      });
+      return v;
+    }
+    const childVals = [];
+    for (const child of node.children) {
+      childVals.push(mm(child, !isMax));
+    }
+    const best = isMax ? Math.max(...childVals) : Math.min(...childVals);
+    steps.push({
+      nodeId: node.id,
+      action: "update",
+      alpha: -Infinity,
+      beta: Infinity,
+      value: best,
+      computedValue: best,
+      message: `${isMax ? "MAX" : "MIN"} = ${best}`
+    });
+    steps.push({
+      nodeId: node.id,
+      action: "return",
+      alpha: -Infinity,
+      beta: Infinity,
+      value: best,
+      computedValue: best,
+      message: `返回 ${best}`
+    });
+    return best;
+  }
+  mm(root, true);
+  return steps;
+}
+function applySteps(viz, upTo) {
+  const states = /* @__PURE__ */ new Map();
+  function initStates(n) {
+    states.set(n.id, {
+      alpha: -Infinity,
+      beta: Infinity,
+      pruned: false,
+      evaluated: false,
+      computedValue: null,
+      active: false
+    });
+    n.children.forEach(initStates);
+  }
+  initStates(tree);
+  const prunedIds = /* @__PURE__ */ new Set();
+  for (let i = 0; i <= upTo && i < viz.steps.length; i++) {
+    const s = viz.steps[i];
+    const st = states.get(s.nodeId);
+    if (!st) continue;
+    switch (s.action) {
+      case "visit":
+        st.active = true;
+        st.alpha = s.alpha;
+        st.beta = s.beta;
+        break;
+      case "evaluate":
+        st.evaluated = true;
+        st.computedValue = s.computedValue;
+        st.alpha = s.alpha;
+        st.beta = s.beta;
+        break;
+      case "update":
+        st.evaluated = true;
+        st.computedValue = s.computedValue;
+        st.alpha = s.alpha;
+        st.beta = s.beta;
+        st.active = true;
+        break;
+      case "prune":
+        prunedIds.add(s.nodeId);
+        break;
+      case "return":
+        st.evaluated = true;
+        st.computedValue = s.computedValue;
+        st.alpha = s.alpha;
+        st.beta = s.beta;
+        break;
+    }
+  }
+  for (const id of prunedIds) {
+    const n = findNode(tree, id);
+    if (n) {
+      let mark = function(m) {
+        const ms = states.get(m.id);
+        if (ms) ms.pruned = true;
+        m.children.forEach(mark);
+      };
+      mark(n);
+    }
+  }
+  if (upTo >= 0 && upTo < viz.steps.length) {
+    for (const st of states.values()) st.active = false;
+    const cur = states.get(viz.steps[upTo].nodeId);
+    if (cur) cur.active = true;
+  }
+  viz.states = states;
+}
+function calcLayout(root) {
+  const pos = /* @__PURE__ */ new Map();
+  function width(n) {
+    if (n.children.length === 0) return H_GAP;
+    const total = n.children.reduce((s, c) => s + width(c), 0) + (n.children.length - 1) * 8;
+    return Math.max(H_GAP, total);
+  }
+  function lay(n, left, top) {
+    const w = width(n);
+    pos.set(n.id, { x: left + w / 2, y: top + PAD_TOP });
+    if (n.children.length > 0) {
+      const cw = n.children.reduce((s, c) => s + width(c), 0) + (n.children.length - 1) * 8;
+      let cl = left + (w - cw) / 2;
+      for (const child of n.children) {
+        lay(child, cl, top + V_GAP);
+        cl += width(child) + 8;
+      }
+    }
+  }
+  lay(root, PAD_LEFT, 0);
+  return pos;
+}
+function bounds(pos) {
+  let mx = 0, my = 0;
+  for (const p of pos.values()) {
+    mx = Math.max(mx, p.x + R + PAD_RIGHT);
+    my = Math.max(my, p.y + R + PAD_BOT);
+  }
+  return { w: mx, h: my };
+}
+function el(tag) {
+  return document.createElementNS(SVG_NS, tag);
+}
+function renderViz(viz) {
+  const svg = document.getElementById(viz.svgId);
+  if (!svg) return;
+  svg.innerHTML = "";
+  const positions = calcLayout(tree);
+  const b = bounds(positions);
+  svg.setAttribute("width", String(b.w));
+  svg.setAttribute("height", String(b.h));
+  svg.setAttribute("viewBox", `0 0 ${b.w} ${b.h}`);
+  const defs = el("defs");
+  const flt = el("filter");
+  flt.id = `glow-${viz.svgId}`;
+  flt.setAttribute("x", "-50%");
+  flt.setAttribute("y", "-50%");
+  flt.setAttribute("width", "200%");
+  flt.setAttribute("height", "200%");
+  const gb = el("feGaussianBlur");
+  gb.setAttribute("stdDeviation", "3");
+  gb.setAttribute("result", "blur");
+  const mg = el("feMerge");
+  const mn1 = el("feMergeNode");
+  mn1.setAttribute("in", "blur");
+  const mn2 = el("feMergeNode");
+  mn2.setAttribute("in", "SourceGraphic");
+  mg.appendChild(mn1);
+  mg.appendChild(mn2);
+  flt.appendChild(gb);
+  flt.appendChild(mg);
+  defs.appendChild(flt);
+  svg.appendChild(defs);
+  renderLevelBadges(svg, positions);
+  renderEdges(svg, tree, positions, viz.states);
+  renderNodes(svg, tree, positions, viz);
+}
+function renderLevelBadges(svg, positions) {
+  const info = [];
+  function collect(n, lv) {
+    const p = positions.get(n.id);
+    if (p && !info[lv]) info[lv] = { y: p.y, type: n.type };
+    n.children.forEach((c) => collect(c, lv + 1));
+  }
+  collect(tree, 0);
+  for (const entry of info) {
+    const bg = entry.type === "max" ? "#1e3a5f" : "#422006";
+    const fg = entry.type === "max" ? "#3b82f6" : "#f59e0b";
+    const rect = el("rect");
+    rect.setAttribute("x", "6");
+    rect.setAttribute("y", String(entry.y - 10));
+    rect.setAttribute("width", "42");
+    rect.setAttribute("height", "20");
+    rect.setAttribute("rx", "3");
+    rect.setAttribute("fill", bg);
+    rect.setAttribute("stroke", fg);
+    rect.setAttribute("stroke-width", "1");
+    svg.appendChild(rect);
+    const txt = el("text");
+    txt.setAttribute("x", "27");
+    txt.setAttribute("y", String(entry.y + 4));
+    txt.setAttribute("text-anchor", "middle");
+    txt.setAttribute("fill", fg);
+    txt.setAttribute("font-size", "9");
+    txt.setAttribute("font-weight", "700");
+    txt.textContent = entry.type.toUpperCase();
+    svg.appendChild(txt);
+  }
+}
+function renderEdges(svg, node, positions, states) {
+  const pp = positions.get(node.id);
+  if (!pp) return;
+  for (const child of node.children) {
+    const cp = positions.get(child.id);
+    if (!cp) continue;
+    const line = el("line");
+    line.setAttribute("x1", String(pp.x));
+    line.setAttribute("y1", String(pp.y + R));
+    line.setAttribute("x2", String(cp.x));
+    line.setAttribute("y2", String(cp.y - R));
+    line.classList.add("tree-edge");
+    const cs = states.get(child.id);
+    if (cs?.pruned) line.classList.add("pruned");
+    if (cs?.active) line.classList.add("active");
+    svg.appendChild(line);
+    renderEdges(svg, child, positions, states);
+  }
+}
+function renderNodes(svg, node, positions, viz) {
+  const pos = positions.get(node.id);
+  if (!pos) return;
+  const st = viz.states.get(node.id);
+  const g = el("g");
+  g.classList.add("node-group");
+  g.setAttribute("data-id", node.id);
+  const circle = el("circle");
+  circle.setAttribute("r", String(R));
+  circle.classList.add("node-circle", node.type === "max" ? "type-max" : "type-min");
+  if (st?.active) {
+    circle.classList.add("active");
+    circle.setAttribute("filter", `url(#glow-${viz.svgId})`);
+  }
+  if (st?.pruned) circle.classList.add("pruned");
+  if (st?.evaluated) circle.classList.add("evaluated");
+  g.appendChild(circle);
+  if (!isLeaf(node)) {
+    const tl = el("text");
+    tl.setAttribute("y", "-5");
+    tl.classList.add("node-type-text");
+    tl.textContent = node.type === "max" ? "MAX" : "MIN";
+    g.appendChild(tl);
+  }
+  const vt = el("text");
+  vt.setAttribute("y", isLeaf(node) ? "1" : "9");
+  vt.classList.add("node-value-text");
+  if (isLeaf(node)) {
+    vt.classList.add("leaf");
+    vt.textContent = String(node.value ?? 0);
+    vt.addEventListener("dblclick", (e) => {
+      e.stopPropagation();
+      startEdit(node.id, pos, viz.svgId);
+    });
+  } else if (st?.computedValue != null) {
+    vt.textContent = String(st.computedValue);
+  }
+  g.appendChild(vt);
+  if ((st?.evaluated || st?.active) && viz.svgId === "svg-ab") {
+    const at = el("text");
+    at.setAttribute("x", String(-28));
+    at.setAttribute("y", "-3");
+    at.classList.add("alpha-text", "visible");
+    at.textContent = `α=${fmt(st?.alpha ?? -Infinity)}`;
+    g.appendChild(at);
+    const bt = el("text");
+    bt.setAttribute("x", String(R + 6));
+    bt.setAttribute("y", "-3");
+    bt.classList.add("beta-text", "visible");
+    bt.textContent = `β=${fmt(st?.beta ?? Infinity)}`;
+    g.appendChild(bt);
+  }
+  if (!isLeaf(node) && st?.computedValue != null) {
+    const cv = el("text");
+    cv.setAttribute("y", String(R + 14));
+    cv.classList.add("computed-value-text");
+    cv.textContent = `=${st.computedValue}`;
+    g.appendChild(cv);
+  }
+  if (st?.pruned) {
+    const strike = el("line");
+    strike.setAttribute("x1", String(-R));
+    strike.setAttribute("y1", "0");
+    strike.setAttribute("x2", String(R));
+    strike.setAttribute("y2", "0");
+    strike.classList.add("prune-strike");
+    g.appendChild(strike);
+  }
+  if (viz.svgId === "svg-ab" && !st?.pruned) {
+    const ag = el("g");
+    ag.classList.add("add-child-btn");
+    ag.setAttribute("transform", `translate(0, ${R + ADD_R + 3})`);
+    const ac = el("circle");
+    ac.setAttribute("r", String(ADD_R));
+    ac.classList.add("btn-circle");
+    ag.appendChild(ac);
+    const at2 = el("text");
+    at2.setAttribute("y", "1");
+    at2.classList.add("btn-text");
+    at2.textContent = "+";
+    ag.appendChild(at2);
+    ag.addEventListener("click", (e) => {
+      e.stopPropagation();
+      addChild(node.id);
+    });
+    g.appendChild(ag);
+  }
+  if (viz.svgId === "svg-ab" && node.id !== tree.id && !st?.pruned) {
+    const rg = el("g");
+    rg.classList.add("action-btn", "remove-btn");
+    rg.setAttribute("transform", `translate(${R - 2}, ${ -20})`);
+    const rc = el("circle");
+    rc.setAttribute("r", String(DEL_R));
+    rc.classList.add("btn-circle");
+    rg.appendChild(rc);
+    const rt = el("text");
+    rt.setAttribute("y", "1");
+    rt.classList.add("btn-text");
+    rt.textContent = "×";
+    rg.appendChild(rt);
+    rg.addEventListener("click", (e) => {
+      e.stopPropagation();
+      removeNode(node.id);
+    });
+    g.appendChild(rg);
+    const sg = el("g");
+    sg.classList.add("action-btn");
+    sg.setAttribute("transform", `translate(${R + SIB_R + 4}, 0)`);
+    const sc = el("circle");
+    sc.setAttribute("r", String(SIB_R));
+    sc.classList.add("btn-circle");
+    sg.appendChild(sc);
+    const st2 = el("text");
+    st2.setAttribute("y", "1");
+    st2.classList.add("btn-text");
+    st2.style.fontSize = "11px";
+    st2.textContent = "+";
+    sg.appendChild(st2);
+    sg.addEventListener("click", (e) => {
+      e.stopPropagation();
+      addSibling(node.id);
+    });
+    g.appendChild(sg);
+  }
+  g.setAttribute("transform", `translate(${pos.x}, ${pos.y})`);
+  svg.appendChild(g);
+  for (const child of node.children) {
+    renderNodes(svg, child, positions, viz);
+  }
+}
+function updateLog(viz) {
+  const logEl = document.getElementById(viz.logId);
+  if (!logEl) return;
+  logEl.innerHTML = "";
+  if (viz.steps.length === 0) {
+    logEl.innerHTML = '<div style="padding:10px 12px;color:var(--text-muted);font-size:11px;">点击「运行对比」开始</div>';
+    return;
+  }
+  for (let i = 0; i < viz.steps.length; i++) {
+    const s = viz.steps[i];
+    const d = document.createElement("div");
+    d.classList.add("step-item", `action-${s.action}`);
+    if (i < viz.currentStep) d.classList.add("past");
+    else if (i === viz.currentStep) d.classList.add("active");
+    const actionMap = {
+      visit: "访问",
+      evaluate: "评估",
+      update: "更新",
+      prune: "剪枝",
+      return: "返回"
+    };
+    d.innerHTML = `<span class="step-num">${i + 1}.</span><span class="step-action">${actionMap[s.action]}</span> ${s.message}`;
+    d.addEventListener("click", () => goToStep(i));
+    logEl.appendChild(d);
+  }
+  if (viz.currentStep >= 0) {
+    const active = logEl.children[viz.currentStep];
+    if (active) active.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+}
+function countStats(viz) {
+  const visitedIds = /* @__PURE__ */ new Set();
+  let prunedCount = 0;
+  for (let i = 0; i <= viz.currentStep && i < viz.steps.length; i++) {
+    const s = viz.steps[i];
+    if (s.action === "visit" || s.action === "evaluate") visitedIds.add(s.nodeId);
+    if (s.action === "prune") {
+      prunedCount++;
+      findNode(tree, s.nodeId);
+    }
+  }
+  return { steps: viz.currentStep + 1, visited: visitedIds.size, pruned: prunedCount };
+}
+function updateStats() {
+  const abStats = countStats(vizAB);
+  const mmStats = countStats(vizMM);
+  const abEl = document.getElementById(vizAB.statsId);
+  if (abEl) abEl.textContent = `${abStats.steps} 步 · ${abStats.visited} 节点访问 · ${abStats.pruned} 剪枝`;
+  const mmEl = document.getElementById(vizMM.statsId);
+  if (mmEl) mmEl.textContent = `${mmStats.steps} 步 · ${mmStats.visited} 节点访问`;
+  const totalAB = vizAB.steps.length;
+  const totalMM = vizMM.steps.length;
+  const visitedAB = new Set(vizAB.steps.filter((s) => s.action === "visit" || s.action === "evaluate").map((s) => s.nodeId)).size;
+  const visitedMM = new Set(vizMM.steps.filter((s) => s.action === "visit" || s.action === "evaluate").map((s) => s.nodeId)).size;
+  const prunedAB = vizAB.steps.filter((s) => s.action === "prune").length;
+  const cStepsAB = document.getElementById("cmp-steps-ab");
+  const cStepsMM = document.getElementById("cmp-steps-mm");
+  const cVisAB = document.getElementById("cmp-visited-ab");
+  const cVisMM = document.getElementById("cmp-visited-mm");
+  const cPrunAB = document.getElementById("cmp-pruned-ab");
+  const cPrunMM = document.getElementById("cmp-pruned-mm");
+  const cEff = document.getElementById("cmp-efficiency");
+  const stepCounter = document.getElementById("step-counter");
+  if (cStepsAB) cStepsAB.textContent = String(totalAB);
+  if (cStepsMM) cStepsMM.textContent = String(totalMM);
+  if (cVisAB) cVisAB.textContent = String(visitedAB);
+  if (cVisMM) cVisMM.textContent = String(visitedMM);
+  if (cPrunAB) cPrunAB.textContent = String(prunedAB);
+  if (cPrunMM) cPrunMM.textContent = "0";
+  if (cEff) {
+    if (totalMM > 0 && totalAB < totalMM) {
+      const pct = ((1 - totalAB / totalMM) * 100).toFixed(1);
+      cEff.textContent = `${pct}%`;
+      cEff.style.color = "var(--ab-color)";
+    } else if (totalAB === totalMM && totalMM > 0) {
+      cEff.textContent = "0%";
+      cEff.style.color = "var(--text-muted)";
+    } else {
+      cEff.textContent = "—";
+    }
+  }
+  if (stepCounter) {
+    const cur = Math.max(vizAB.currentStep, vizMM.currentStep) + 1;
+    const maxSteps = Math.max(totalAB, totalMM);
+    stepCounter.textContent = `步骤: ${maxSteps > 0 ? cur : 0}/${maxSteps}`;
+  }
+}
+function computeBoth() {
+  vizAB.steps = computeAlphaBeta(tree);
+  vizMM.steps = computeMinimax(tree);
+  vizAB.currentStep = -1;
+  vizMM.currentStep = -1;
+  applySteps(vizAB, -1);
+  applySteps(vizMM, -1);
+  updateStats();
+}
+function goToStep(index) {
+  const abIdx = Math.min(index, vizAB.steps.length - 1);
+  const mmIdx = Math.min(index, vizMM.steps.length - 1);
+  vizAB.currentStep = abIdx;
+  vizMM.currentStep = mmIdx;
+  applySteps(vizAB, abIdx);
+  applySteps(vizMM, mmIdx);
+  renderViz(vizAB);
+  renderViz(vizMM);
+  updateLog(vizAB);
+  updateLog(vizMM);
+  updateStats();
+}
+function stepForward() {
+  if (vizAB.steps.length === 0) computeBoth();
+  const maxStep = Math.max(vizAB.steps.length, vizMM.steps.length);
+  const cur = Math.max(vizAB.currentStep, vizMM.currentStep);
+  if (cur < maxStep - 1) {
+    goToStep(cur + 1);
+  }
+}
+function runComparison() {
+  if (vizAB.steps.length === 0) computeBoth();
+  const maxStep = Math.max(vizAB.steps.length, vizMM.steps.length);
+  const cur = Math.max(vizAB.currentStep, vizMM.currentStep);
+  if (cur >= maxStep - 1) {
+    vizAB.currentStep = -1;
+    vizMM.currentStep = -1;
+    applySteps(vizAB, -1);
+    applySteps(vizMM, -1);
+  }
+  startPlaying();
+}
+function startPlaying() {
+  if (isPlaying) return;
+  isPlaying = true;
+  const slider = document.getElementById("speed-slider");
+  const speed = slider ? parseInt(slider.value, 10) : 500;
+  playTimer = setInterval(() => {
+    const maxStep = Math.max(vizAB.steps.length, vizMM.steps.length);
+    const cur = Math.max(vizAB.currentStep, vizMM.currentStep);
+    if (cur < maxStep - 1) {
+      goToStep(cur + 1);
+    } else {
+      stopPlaying();
+    }
+  }, speed);
+  updateBtnStates();
+}
+function stopPlaying() {
+  isPlaying = false;
+  if (playTimer) {
+    clearInterval(playTimer);
+    playTimer = null;
+  }
+  updateBtnStates();
+}
+function resetAll() {
+  stopPlaying();
+  vizAB.steps = [];
+  vizMM.steps = [];
+  vizAB.currentStep = -1;
+  vizMM.currentStep = -1;
+  applySteps(vizAB, -1);
+  applySteps(vizMM, -1);
+  renderViz(vizAB);
+  renderViz(vizMM);
+  updateLog(vizAB);
+  updateLog(vizMM);
+  updateStats();
+}
+function resetAndRender() {
+  resetAll();
+}
+function updateBtnStates() {
+  const btnRun = document.getElementById("btn-run");
+  const btnStep = document.getElementById("btn-step");
+  if (btnRun) {
+    btnRun.disabled = isPlaying;
+    btnRun.innerHTML = isPlaying ? '<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><rect x="3" y="2" width="4" height="12"/><rect x="9" y="2" width="4" height="12"/></svg> 暂停' : '<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M4 2l10 6-10 6V2z"/></svg> 运行对比';
+  }
+  if (btnStep) btnStep.disabled = isPlaying;
+}
+function startEdit(nodeId, nodePos, svgId) {
+  if (editingNodeId) return;
+  editingNodeId = nodeId;
+  const editor = document.getElementById("value-editor");
+  const input = document.getElementById("value-input");
+  if (!editor || !input) return;
+  const node = findNode(tree, nodeId);
+  if (!node) return;
+  const svg = document.getElementById(svgId);
+  if (!svg) return;
+  const svgRect = svg.getBoundingClientRect();
+  const svgW = parseFloat(svg.getAttribute("width") || "1");
+  const svgH = parseFloat(svg.getAttribute("height") || "1");
+  const sx = svgRect.width / svgW;
+  const sy = svgRect.height / svgH;
+  editor.style.left = `${svgRect.left + nodePos.x * sx - 28}px`;
+  editor.style.top = `${svgRect.top + nodePos.y * sy - 15}px`;
+  editor.classList.remove("hidden");
+  input.value = String(node.value ?? 0);
+  input.focus();
+  input.select();
+}
+function finishEdit() {
+  if (!editingNodeId) return;
+  const input = document.getElementById("value-input");
+  const editor = document.getElementById("value-editor");
+  if (!input || !editor) return;
+  const val = parseInt(input.value, 10);
+  if (!isNaN(val)) updateNodeValue(editingNodeId, val);
+  editingNodeId = null;
+  editor.classList.add("hidden");
+}
+function initDivider() {
+  const divider = document.getElementById("panel-divider");
+  const abPanel = document.getElementById("panel-ab");
+  const workspace = document.getElementById("workspace");
+  if (!divider || !abPanel || !workspace) return;
+  let isDragging = false;
+  const onMouseDown = (e) => {
+    e.preventDefault();
+    isDragging = true;
+    divider.classList.add("dragging");
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    const onMouseMove = (ev) => {
+      if (!isDragging) return;
+      const rect = workspace.getBoundingClientRect();
+      const x = ev.clientX - rect.left;
+      const minW = 280;
+      const maxW = rect.width - 280 - 6;
+      const w = Math.min(maxW, Math.max(minW, x));
+      abPanel.style.width = w + "px";
+    };
+    const onMouseUp = () => {
+      isDragging = false;
+      divider.classList.remove("dragging");
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    };
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+  };
+  divider.addEventListener("mousedown", onMouseDown);
+}
+function initApp() {
+  tree = createDefaultTree();
+  applySteps(vizAB, -1);
+  applySteps(vizMM, -1);
+  document.getElementById("btn-run")?.addEventListener("click", () => {
+    if (isPlaying) stopPlaying();
+    else runComparison();
+  });
+  document.getElementById("btn-step")?.addEventListener("click", () => stepForward());
+  document.getElementById("btn-reset")?.addEventListener("click", () => resetAll());
+  document.getElementById("speed-slider")?.addEventListener("input", () => {
+    if (isPlaying) {
+      stopPlaying();
+      startPlaying();
+    }
+  });
+  document.querySelectorAll(".drawer-toggle").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const target = btn.getAttribute("data-target");
+      if (target) document.getElementById(target)?.classList.toggle("collapsed");
+    });
+  });
+  document.querySelectorAll(".drawer-header").forEach((hdr) => {
+    hdr.addEventListener("click", () => {
+      const drawer = hdr.closest(".step-drawer");
+      drawer?.classList.toggle("collapsed");
+    });
+  });
+  const valueInput = document.getElementById("value-input");
+  if (valueInput) {
+    valueInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") finishEdit();
+      else if (e.key === "Escape") {
+        editingNodeId = null;
+        document.getElementById("value-editor")?.classList.add("hidden");
+      }
+    });
+    valueInput.addEventListener("blur", () => finishEdit());
+  }
+  document.addEventListener("click", (e) => {
+    const editor = document.getElementById("value-editor");
+    if (editor && !editor.classList.contains("hidden") && !editor.contains(e.target)) {
+      finishEdit();
+    }
+  });
+  document.addEventListener("keydown", (e) => {
+    if (editingNodeId) return;
+    if (e.key === "ArrowRight" || e.key === "n") stepForward();
+    else if (e.key === "r") runComparison();
+    else if (e.key === "Escape") resetAll();
+    else if (e.key === " ") {
+      e.preventDefault();
+      if (isPlaying) stopPlaying();
+      else runComparison();
+    }
+  });
+  renderViz(vizAB);
+  renderViz(vizMM);
+  updateLog(vizAB);
+  updateLog(vizMM);
+  updateStats();
+  updateBtnStates();
+  initDivider();
+}
+
+initApp();</script>
+    <style rel="stylesheet" crossorigin>*, ::before, ::after {
+  --tw-border-spacing-x: 0;
+  --tw-border-spacing-y: 0;
+  --tw-translate-x: 0;
+  --tw-translate-y: 0;
+  --tw-rotate: 0;
+  --tw-skew-x: 0;
+  --tw-skew-y: 0;
+  --tw-scale-x: 1;
+  --tw-scale-y: 1;
+  --tw-pan-x:  ;
+  --tw-pan-y:  ;
+  --tw-pinch-zoom:  ;
+  --tw-scroll-snap-strictness: proximity;
+  --tw-gradient-from-position:  ;
+  --tw-gradient-via-position:  ;
+  --tw-gradient-to-position:  ;
+  --tw-ordinal:  ;
+  --tw-slashed-zero:  ;
+  --tw-numeric-figure:  ;
+  --tw-numeric-spacing:  ;
+  --tw-numeric-fraction:  ;
+  --tw-ring-inset:  ;
+  --tw-ring-offset-width: 0px;
+  --tw-ring-offset-color: #fff;
+  --tw-ring-color: rgb(59 130 246 / 0.5);
+  --tw-ring-offset-shadow: 0 0 #0000;
+  --tw-ring-shadow: 0 0 #0000;
+  --tw-shadow: 0 0 #0000;
+  --tw-shadow-colored: 0 0 #0000;
+  --tw-blur:  ;
+  --tw-brightness:  ;
+  --tw-contrast:  ;
+  --tw-grayscale:  ;
+  --tw-hue-rotate:  ;
+  --tw-invert:  ;
+  --tw-saturate:  ;
+  --tw-sepia:  ;
+  --tw-drop-shadow:  ;
+  --tw-backdrop-blur:  ;
+  --tw-backdrop-brightness:  ;
+  --tw-backdrop-contrast:  ;
+  --tw-backdrop-grayscale:  ;
+  --tw-backdrop-hue-rotate:  ;
+  --tw-backdrop-invert:  ;
+  --tw-backdrop-opacity:  ;
+  --tw-backdrop-saturate:  ;
+  --tw-backdrop-sepia:  ;
+  --tw-contain-size:  ;
+  --tw-contain-layout:  ;
+  --tw-contain-paint:  ;
+  --tw-contain-style:  ;
+}
+
+::backdrop {
+  --tw-border-spacing-x: 0;
+  --tw-border-spacing-y: 0;
+  --tw-translate-x: 0;
+  --tw-translate-y: 0;
+  --tw-rotate: 0;
+  --tw-skew-x: 0;
+  --tw-skew-y: 0;
+  --tw-scale-x: 1;
+  --tw-scale-y: 1;
+  --tw-pan-x:  ;
+  --tw-pan-y:  ;
+  --tw-pinch-zoom:  ;
+  --tw-scroll-snap-strictness: proximity;
+  --tw-gradient-from-position:  ;
+  --tw-gradient-via-position:  ;
+  --tw-gradient-to-position:  ;
+  --tw-ordinal:  ;
+  --tw-slashed-zero:  ;
+  --tw-numeric-figure:  ;
+  --tw-numeric-spacing:  ;
+  --tw-numeric-fraction:  ;
+  --tw-ring-inset:  ;
+  --tw-ring-offset-width: 0px;
+  --tw-ring-offset-color: #fff;
+  --tw-ring-color: rgb(59 130 246 / 0.5);
+  --tw-ring-offset-shadow: 0 0 #0000;
+  --tw-ring-shadow: 0 0 #0000;
+  --tw-shadow: 0 0 #0000;
+  --tw-shadow-colored: 0 0 #0000;
+  --tw-blur:  ;
+  --tw-brightness:  ;
+  --tw-contrast:  ;
+  --tw-grayscale:  ;
+  --tw-hue-rotate:  ;
+  --tw-invert:  ;
+  --tw-saturate:  ;
+  --tw-sepia:  ;
+  --tw-drop-shadow:  ;
+  --tw-backdrop-blur:  ;
+  --tw-backdrop-brightness:  ;
+  --tw-backdrop-contrast:  ;
+  --tw-backdrop-grayscale:  ;
+  --tw-backdrop-hue-rotate:  ;
+  --tw-backdrop-invert:  ;
+  --tw-backdrop-opacity:  ;
+  --tw-backdrop-saturate:  ;
+  --tw-backdrop-sepia:  ;
+  --tw-contain-size:  ;
+  --tw-contain-layout:  ;
+  --tw-contain-paint:  ;
+  --tw-contain-style:  ;
+}/*
+! tailwindcss v3.4.19 | MIT License | https://tailwindcss.com
+*//*
+1. Prevent padding and border from affecting element width. (https://github.com/mozdevs/cssremedy/issues/4)
+2. Allow adding a border to an element by just adding a border-width. (https://github.com/tailwindcss/tailwindcss/pull/116)
+*/
+
+*,
+::before,
+::after {
+  box-sizing: border-box; /* 1 */
+  border-width: 0; /* 2 */
+  border-style: solid; /* 2 */
+  border-color: #e5e7eb; /* 2 */
+}
+
+::before,
+::after {
+  --tw-content: '';
+}
+
+/*
+1. Use a consistent sensible line-height in all browsers.
+2. Prevent adjustments of font size after orientation changes in iOS.
+3. Use a more readable tab size.
+4. Use the user's configured `sans` font-family by default.
+5. Use the user's configured `sans` font-feature-settings by default.
+6. Use the user's configured `sans` font-variation-settings by default.
+7. Disable tap highlights on iOS
+*/
+
+html,
+:host {
+  line-height: 1.5; /* 1 */
+  -webkit-text-size-adjust: 100%; /* 2 */
+  -moz-tab-size: 4; /* 3 */
+  -o-tab-size: 4;
+     tab-size: 4; /* 3 */
+  font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; /* 4 */
+  font-feature-settings: normal; /* 5 */
+  font-variation-settings: normal; /* 6 */
+  -webkit-tap-highlight-color: transparent; /* 7 */
+}
+
+/*
+1. Remove the margin in all browsers.
+2. Inherit line-height from `html` so users can set them as a class directly on the `html` element.
+*/
+
+body {
+  margin: 0; /* 1 */
+  line-height: inherit; /* 2 */
+}
+
+/*
+1. Add the correct height in Firefox.
+2. Correct the inheritance of border color in Firefox. (https://bugzilla.mozilla.org/show_bug.cgi?id=190655)
+3. Ensure horizontal rules are visible by default.
+*/
+
+hr {
+  height: 0; /* 1 */
+  color: inherit; /* 2 */
+  border-top-width: 1px; /* 3 */
+}
+
+/*
+Add the correct text decoration in Chrome, Edge, and Safari.
+*/
+
+abbr:where([title]) {
+  -webkit-text-decoration: underline dotted;
+          text-decoration: underline dotted;
+}
+
+/*
+Remove the default font size and weight for headings.
+*/
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+/*
+Reset links to optimize for opt-in styling instead of opt-out.
+*/
+
+a {
+  color: inherit;
+  text-decoration: inherit;
+}
+
+/*
+Add the correct font weight in Edge and Safari.
+*/
+
+b,
+strong {
+  font-weight: bolder;
+}
+
+/*
+1. Use the user's configured `mono` font-family by default.
+2. Use the user's configured `mono` font-feature-settings by default.
+3. Use the user's configured `mono` font-variation-settings by default.
+4. Correct the odd `em` font sizing in all browsers.
+*/
+
+code,
+kbd,
+samp,
+pre {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; /* 1 */
+  font-feature-settings: normal; /* 2 */
+  font-variation-settings: normal; /* 3 */
+  font-size: 1em; /* 4 */
+}
+
+/*
+Add the correct font size in all browsers.
+*/
+
+small {
+  font-size: 80%;
+}
+
+/*
+Prevent `sub` and `sup` elements from affecting the line height in all browsers.
+*/
+
+sub,
+sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+
+sub {
+  bottom: -0.25em;
+}
+
+sup {
+  top: -0.5em;
+}
+
+/*
+1. Remove text indentation from table contents in Chrome and Safari. (https://bugs.chromium.org/p/chromium/issues/detail?id=999088, https://bugs.webkit.org/show_bug.cgi?id=201297)
+2. Correct table border color inheritance in all Chrome and Safari. (https://bugs.chromium.org/p/chromium/issues/detail?id=935729, https://bugs.webkit.org/show_bug.cgi?id=195016)
+3. Remove gaps between table borders by default.
+*/
+
+table {
+  text-indent: 0; /* 1 */
+  border-color: inherit; /* 2 */
+  border-collapse: collapse; /* 3 */
+}
+
+/*
+1. Change the font styles in all browsers.
+2. Remove the margin in Firefox and Safari.
+3. Remove default padding in all browsers.
+*/
+
+button,
+input,
+optgroup,
+select,
+textarea {
+  font-family: inherit; /* 1 */
+  font-feature-settings: inherit; /* 1 */
+  font-variation-settings: inherit; /* 1 */
+  font-size: 100%; /* 1 */
+  font-weight: inherit; /* 1 */
+  line-height: inherit; /* 1 */
+  letter-spacing: inherit; /* 1 */
+  color: inherit; /* 1 */
+  margin: 0; /* 2 */
+  padding: 0; /* 3 */
+}
+
+/*
+Remove the inheritance of text transform in Edge and Firefox.
+*/
+
+button,
+select {
+  text-transform: none;
+}
+
+/*
+1. Correct the inability to style clickable types in iOS and Safari.
+2. Remove default button styles.
+*/
+
+button,
+input:where([type='button']),
+input:where([type='reset']),
+input:where([type='submit']) {
+  -webkit-appearance: button; /* 1 */
+  background-color: transparent; /* 2 */
+  background-image: none; /* 2 */
+}
+
+/*
+Use the modern Firefox focus style for all focusable elements.
+*/
+
+:-moz-focusring {
+  outline: auto;
+}
+
+/*
+Remove the additional `:invalid` styles in Firefox. (https://github.com/mozilla/gecko-dev/blob/2f9eacd9d3d995c937b4251a5557d95d494c9be1/layout/style/res/forms.css#L728-L737)
+*/
+
+:-moz-ui-invalid {
+  box-shadow: none;
+}
+
+/*
+Add the correct vertical alignment in Chrome and Firefox.
+*/
+
+progress {
+  vertical-align: baseline;
+}
+
+/*
+Correct the cursor style of increment and decrement buttons in Safari.
+*/
+
+::-webkit-inner-spin-button,
+::-webkit-outer-spin-button {
+  height: auto;
+}
+
+/*
+1. Correct the odd appearance in Chrome and Safari.
+2. Correct the outline style in Safari.
+*/
+
+[type='search'] {
+  -webkit-appearance: textfield; /* 1 */
+  outline-offset: -2px; /* 2 */
+}
+
+/*
+Remove the inner padding in Chrome and Safari on macOS.
+*/
+
+::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+
+/*
+1. Correct the inability to style clickable types in iOS and Safari.
+2. Change font properties to `inherit` in Safari.
+*/
+
+::-webkit-file-upload-button {
+  -webkit-appearance: button; /* 1 */
+  font: inherit; /* 2 */
+}
+
+/*
+Add the correct display in Chrome and Safari.
+*/
+
+summary {
+  display: list-item;
+}
+
+/*
+Removes the default spacing and border for appropriate elements.
+*/
+
+blockquote,
+dl,
+dd,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+hr,
+figure,
+p,
+pre {
+  margin: 0;
+}
+
+fieldset {
+  margin: 0;
+  padding: 0;
+}
+
+legend {
+  padding: 0;
+}
+
+ol,
+ul,
+menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/*
+Reset default styling for dialogs.
+*/
+dialog {
+  padding: 0;
+}
+
+/*
+Prevent resizing textareas horizontally by default.
+*/
+
+textarea {
+  resize: vertical;
+}
+
+/*
+1. Reset the default placeholder opacity in Firefox. (https://github.com/tailwindlabs/tailwindcss/issues/3300)
+2. Set the default placeholder color to the user's configured gray 400 color.
+*/
+
+input::-moz-placeholder, textarea::-moz-placeholder {
+  opacity: 1; /* 1 */
+  color: #9ca3af; /* 2 */
+}
+
+input::placeholder,
+textarea::placeholder {
+  opacity: 1; /* 1 */
+  color: #9ca3af; /* 2 */
+}
+
+/*
+Set the default cursor for buttons.
+*/
+
+button,
+[role="button"] {
+  cursor: pointer;
+}
+
+/*
+Make sure disabled buttons don't get the pointer cursor.
+*/
+:disabled {
+  cursor: default;
+}
+
+/*
+1. Make replaced elements `display: block` by default. (https://github.com/mozdevs/cssremedy/issues/14)
+2. Add `vertical-align: middle` to align replaced elements more sensibly by default. (https://github.com/jensimmons/cssremedy/issues/14#issuecomment-634934210)
+   This can trigger a poorly considered lint error in some tools but is included by design.
+*/
+
+img,
+svg,
+video,
+canvas,
+audio,
+iframe,
+embed,
+object {
+  display: block; /* 1 */
+  vertical-align: middle; /* 2 */
+}
+
+/*
+Constrain images and videos to the parent width and preserve their intrinsic aspect ratio. (https://github.com/mozdevs/cssremedy/issues/14)
+*/
+
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Make elements with the HTML hidden attribute stay hidden by default */
+[hidden]:where(:not([hidden="until-found"])) {
+  display: none;
+}
+.visible {
+  visibility: visible;
+}
+.block {
+  display: block;
+}
+.hidden {
+  display: none;
+}
+.transform {
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+.blur {
+  --tw-blur: blur(8px);
+  filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
+}
+.filter {
+  filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
+}
+
+:root {
+  --bg-deep: #0f172a;
+  --bg-panel: #1e293b;
+  --bg-panel-hover: #334155;
+  --border-color: #334155;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --node-max: #3b82f6;
+  --node-max-bg: #1e3a5f;
+  --node-min: #f59e0b;
+  --node-min-bg: #422006;
+  --node-active: #22c55e;
+  --node-active-bg: #14532d;
+  --node-pruned: #64748b;
+  --node-pruned-bg: #1e293b;
+  --edge-color: #475569;
+  --accent: #10b981;
+  --accent-hover: #059669;
+  --danger: #ef4444;
+  --ab-color: #10b981;
+  --mm-color: #f59e0b;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+  height: 100vh;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* ===== Toolbar ===== */
+#toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  height: 50px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.toolbar-left .title {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--text-primary);
+}
+
+.toolbar-center {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.toolbar-center button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.toolbar-center button:hover {
+  background: var(--bg-panel-hover);
+  border-color: var(--accent);
+}
+
+.toolbar-center button:active { transform: scale(0.97); }
+.toolbar-center button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.speed-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 6px;
+  padding-left: 12px;
+  border-left: 1px solid var(--border-color);
+}
+
+.speed-label { font-size: 11px; color: var(--text-secondary); }
+#speed-slider { width: 80px; accent-color: var(--accent); }
+
+.step-counter {
+  font-size: 12px;
+  font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
+  color: var(--text-secondary);
+  background: var(--bg-deep);
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+}
+
+/* ===== Workspace ===== */
+#workspace {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.algo-panel {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-deep);
+  min-width: 280px;
+  overflow: hidden;
+}
+
+#ab-panel {
+  flex: none;
+  width: 50%;
+}
+
+#mm-panel {
+  flex: 1;
+}
+
+/* Resizable Divider */
+.panel-divider {
+  width: 6px;
+  cursor: col-resize;
+  background: var(--border-color);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+  transition: background 0.15s ease;
+}
+
+.panel-divider:hover,
+.panel-divider.dragging {
+  background: var(--accent);
+}
+
+.panel-divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 32px;
+  background: var(--text-muted);
+  border-radius: 1px;
+  transition: background 0.15s ease;
+}
+
+.panel-divider:hover::after,
+.panel-divider.dragging::after {
+  background: var(--bg-deep);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.panel-badge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.ab-badge {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--ab-color);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.mm-badge {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--mm-color);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.panel-stats {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
+}
+
+.tree-viewport {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.04) 0%, transparent 60%),
+    var(--bg-deep);
+}
+
+.tree-viewport svg {
+  display: block;
+  min-width: 100%;
+  min-height: 100%;
+}
+
+/* Step Drawer */
+.step-drawer {
+  flex-shrink: 0;
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border-color);
+  max-height: 180px;
+  display: flex;
+  flex-direction: column;
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+}
+
+.drawer-toggle {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0 4px;
+  transition: transform 0.2s ease;
+}
+
+.step-drawer.collapsed .drawer-toggle { transform: rotate(-90deg); }
+.step-drawer.collapsed .drawer-body { display: none; }
+
+.drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+.step-item {
+  padding: 4px 12px;
+  font-size: 11px;
+  line-height: 1.4;
+  border-left: 3px solid transparent;
+  color: var(--text-secondary);
+  transition: all 0.12s ease;
+  cursor: pointer;
+}
+
+.step-item:hover { background: rgba(255,255,255,0.03); }
+.step-item.active {
+  background: rgba(16, 185, 129, 0.08);
+  border-left-color: var(--accent);
+  color: var(--text-primary);
+}
+.step-item.past { color: var(--text-muted); }
+
+.step-num {
+  font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
+  font-weight: 600;
+  color: var(--accent);
+  margin-right: 4px;
+}
+
+.step-action { font-weight: 600; }
+.action-visit .step-action { color: #60a5fa; }
+.action-evaluate .step-action { color: #34d399; }
+.action-update .step-action { color: #fbbf24; }
+.action-prune .step-action { color: #f87171; }
+.action-return .step-action { color: #a78bfa; }
+
+/* ===== Compare Bar ===== */
+#compare-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 8px 20px;
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.compare-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.compare-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.compare-values {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.ab-val { color: var(--ab-color); }
+.mm-val { color: var(--mm-color); }
+.vs { color: var(--text-muted); font-size: 11px; font-weight: 400; }
+
+.compare-item.highlight .efficiency-val {
+  font-size: 18px;
+  color: var(--ab-color);
+}
+
+.compare-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  max-width: 260px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* ===== Value Editor ===== */
+#value-editor {
+  position: fixed;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#value-editor.hidden { display: none; }
+
+#value-input {
+  width: 56px;
+  height: 30px;
+  border: 2px solid var(--accent);
+  border-radius: 6px;
+  background: var(--bg-panel);
+  color: var(--text-primary);
+  text-align: center;
+  font-size: 13px;
+  font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
+  outline: none;
+}
+
+#value-input:focus { box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3); }
+
+/* ===== SVG Node Styles ===== */
+.node-circle {
+  transition: all 0.2s ease;
+  cursor: default;
+}
+
+.node-circle.type-max {
+  fill: var(--node-max-bg);
+  stroke: var(--node-max);
+  stroke-width: 2;
+}
+
+.node-circle.type-min {
+  fill: var(--node-min-bg);
+  stroke: var(--node-min);
+  stroke-width: 2;
+}
+
+.node-circle.active {
+  fill: var(--node-active-bg) !important;
+  stroke: var(--node-active) !important;
+  stroke-width: 2.5 !important;
+  filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.5));
+}
+
+.node-circle.pruned {
+  fill: var(--node-pruned-bg) !important;
+  stroke: var(--node-pruned) !important;
+  stroke-width: 1.5 !important;
+  stroke-dasharray: 5 3;
+  opacity: 0.5;
+}
+
+.node-circle.evaluated { stroke-width: 2.5 !important; }
+
+.node-type-text {
+  font-size: 9px;
+  font-weight: 700;
+  fill: var(--text-secondary);
+  text-anchor: middle;
+  pointer-events: none;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+}
+
+.node-value-text {
+  font-size: 13px;
+  font-weight: 700;
+  fill: var(--text-primary);
+  text-anchor: middle;
+  pointer-events: none;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+  font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
+}
+
+.node-value-text.leaf {
+  cursor: pointer;
+  pointer-events: all;
+}
+
+.node-value-text.leaf:hover { fill: var(--accent); }
+
+.alpha-text, .beta-text {
+  font-size: 9px;
+  font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
+  pointer-events: none;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.alpha-text.visible, .beta-text.visible { opacity: 1; }
+.alpha-text { fill: #60a5fa; text-anchor: end; }
+.beta-text { fill: #fbbf24; text-anchor: start; }
+
+.computed-value-text {
+  font-size: 10px;
+  font-weight: 700;
+  fill: var(--accent);
+  text-anchor: middle;
+  pointer-events: none;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+  font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
+}
+
+/* Edges */
+.tree-edge {
+  stroke: var(--edge-color);
+  stroke-width: 1.5;
+  fill: none;
+  transition: all 0.2s ease;
+}
+
+.tree-edge.pruned {
+  stroke: var(--node-pruned);
+  stroke-dasharray: 5 3;
+  opacity: 0.35;
+}
+
+.tree-edge.active {
+  stroke: var(--node-active);
+  stroke-width: 2;
+}
+
+/* Action buttons */
+.action-btn {
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.node-group:hover .action-btn { opacity: 1; }
+
+.action-btn .btn-circle {
+  fill: var(--bg-deep);
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  transition: all 0.15s ease;
+}
+
+.action-btn:hover .btn-circle { fill: var(--accent); }
+
+.action-btn .btn-text {
+  fill: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+  transition: fill 0.15s ease;
+}
+
+.action-btn:hover .btn-text { fill: var(--bg-deep); }
+
+.action-btn.remove-btn .btn-circle { stroke: var(--danger); }
+.action-btn.remove-btn:hover .btn-circle { fill: var(--danger); }
+.action-btn.remove-btn .btn-text { fill: var(--danger); }
+.action-btn.remove-btn:hover .btn-text { fill: white; }
+
+.add-child-btn {
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.15s ease;
+}
+
+.node-group:hover .add-child-btn { opacity: 1; }
+
+.add-child-btn .btn-circle {
+  fill: var(--bg-deep);
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  transition: fill 0.15s ease;
+}
+
+.add-child-btn:hover .btn-circle { fill: var(--accent); }
+
+.add-child-btn .btn-text {
+  fill: var(--accent);
+  font-size: 14px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+  transition: fill 0.15s ease;
+}
+
+.add-child-btn:hover .btn-text { fill: var(--bg-deep); }
+
+/* Level labels */
+.level-badge-rect {
+  rx: 3;
+}
+
+.level-badge-text {
+  text-anchor: middle;
+  font-size: 9px;
+  font-weight: 700;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Pruned strike-through */
+.prune-strike {
+  stroke: var(--danger);
+  stroke-width: 2;
+  opacity: 0.6;
+}
+
+/* Scrollbars */
+.tree-viewport::-webkit-scrollbar,
+.drawer-body::-webkit-scrollbar { width: 5px; height: 5px; }
+.tree-viewport::-webkit-scrollbar-track,
+.drawer-body::-webkit-scrollbar-track { background: var(--bg-deep); }
+.tree-viewport::-webkit-scrollbar-thumb,
+.drawer-body::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+.tree-viewport::-webkit-scrollbar-thumb:hover,
+.drawer-body::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }</style>
   </head>
   <body>
     <div id="app">
@@ -54,6 +2066,8 @@
             <div class="drawer-body" id="log-ab"></div>
           </div>
         </section>
+
+        <div class="panel-divider" id="panel-divider"></div>
 
         <!-- Minimax 面板 -->
         <section class="algo-panel" id="panel-mm">
