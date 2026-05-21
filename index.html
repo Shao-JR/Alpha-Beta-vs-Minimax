@@ -71,11 +71,29 @@ function createNode(type, value = null) {
 }
 function createDefaultTree() {
   const root = createNode("max");
-  const m1 = createNode("min");
-  const m2 = createNode("min");
-  root.children = [m1, m2];
-  m1.children = [createNode("max", 3), createNode("max", 5)];
-  m2.children = [createNode("max", 6), createNode("max", 4)];
+  const b = createNode("min");
+  const g = createNode("min", 9);
+  const h = createNode("min");
+  root.children = [b, g, h];
+  const c = createNode("max", 6);
+  const d = createNode("max");
+  b.children = [c, d];
+  const i = createNode("max");
+  const j = createNode("max");
+  h.children = [i, j];
+  const e = createNode("min", 9);
+  const f = createNode("min", 8);
+  d.children = [e, f];
+  const k = createNode("min", 10);
+  const l = createNode("min");
+  i.children = [k, l];
+  const m = createNode("min");
+  const n = createNode("min", 10);
+  const o = createNode("min");
+  j.children = [m, n, o];
+  l.children = [createNode("max", 8), createNode("max", 14)];
+  m.children = [createNode("max", 5), createNode("max", 8), createNode("max", 1)];
+  o.children = [createNode("max", 8), createNode("max", 12)];
   return root;
 }
 function findNode(root, id) {
